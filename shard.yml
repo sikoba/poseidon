@@ -1,0 +1,13 @@
+name: poseidon
+version: 1.0.0
+
+authors:
+  - Guillaume Drevon <gd@sikoba.com>
+
+license: MIT
+
+crystal: 0.35.1
+
+dependencies:
+  ecdsa:
+    github: sikoba/ecdsa.cr

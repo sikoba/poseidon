@@ -1,0 +1,5 @@
+/bin/
+/lib/
+/lib/
+/.shards/
+shard.lock
