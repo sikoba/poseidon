@@ -16,6 +16,14 @@ def mult(vec, mat)
     return res;
 end
 
+def mod_exp(a : BigInt, e : Int32, p : BigInt)
+    if (e < 0)
+        a = ECDSA::Math.mod_inverse(a, p)
+        e = -e;
+    end
+    return ECDSA::Math.mod_exp(a, BigInt.new(e), p);
+end
+
 
 class Poseidon
     @state : Array(BigInt);
@@ -38,7 +46,7 @@ class Poseidon
                 round_constants_counter += 1
             end
             (0...t).each do |i|
-                state_words[i] = ECDSA::Math.mod_exp(state_words[i], BigInt.new(5), @prime);
+                state_words[i] = mod_exp(state_words[i], params.@sbox, @prime);
             end
             state_words = mult(state_words, mds_matrix);
         end
@@ -50,7 +58,7 @@ class Poseidon
                 state_words[i] = state_words[i] + round_constants_field[round_constants_counter]
                 round_constants_counter += 1
             end
-            state_words[0] = ECDSA::Math.mod_exp(state_words[0], BigInt.new(5), @prime);
+            state_words[0] = mod_exp(state_words[0], params.@sbox, @prime);
             state_words = mult(state_words, mds_matrix);
         end
 
@@ -62,10 +70,9 @@ class Poseidon
                 round_constants_counter += 1
             end
             (0...t).each do |i|
-                state_words[i] = ECDSA::Math.mod_exp(state_words[i], BigInt.new(5), @prime);
+                state_words[i] = mod_exp(state_words[i], params.@sbox, @prime);
             end
             state_words = mult(state_words, mds_matrix);
-            #state_words = state_words * MDS_matrix_field;     faut un 'vecteur' 1 
         end
 
         # Last round (no matrix multiplication)
@@ -75,7 +82,7 @@ class Poseidon
             round_constants_counter += 1
         end
         (0...t).each do |i|
-            state_words[i] = ECDSA::Math.mod_exp(state_words[i], BigInt.new(5), @prime);
+            state_words[i] = mod_exp(state_words[i], params.@sbox, @prime);
         end
         return state_words
     end
@@ -147,6 +154,12 @@ class Poseidon
         return params;
     end
 
+    # Returns a poseidon object with (current) Horizen parameters
+    def self.new_horizen
+        p = BigInt.new("41898490967918953402344214791240637128170709919953949071783502921025352812571106773058893763790338921418070971888458477323173057491593855069696241854796396165721416325350064441470418137846398469611935719059908164220784476160001")
+        return Poseidon.new(p, 0 , 3 , 1);
+    end
+    
     #convert input into arrays of field
     def preprocess(data : Array(UInt8))
         n = field_size();  #number of bytes that can fit in a field element
